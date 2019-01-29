@@ -54,6 +54,52 @@ class PaintRecorder extends CustomPainter {
 }
 
 void main() {
+  // Regression test for https://github.com/flutter/flutter/issues/27223
+  testWidgets('default Material debugFillProperties',
+      (WidgetTester tester) async {
+    final DiagnosticPropertiesBuilder builder = DiagnosticPropertiesBuilder();
+
+    const Material().debugFillProperties(builder);
+
+    final List<String> description = builder.properties
+        .where((DiagnosticsNode node) => !node.isFiltered(DiagnosticLevel.info))
+        .map((DiagnosticsNode node) => node.toString())
+        .toList();
+
+    expect(description, <String>['type: canvas']);
+  });
+  // Regression test for https://github.com/flutter/flutter/issues/27223
+  testWidgets('Material implements debugFillProperties',
+      (WidgetTester tester) async {
+    final DiagnosticPropertiesBuilder builder = DiagnosticPropertiesBuilder();
+
+    const Material(
+      type: MaterialType.canvas,
+      elevation: 0.0,
+      color: const Color(0xFFFFFFFF),
+      shadowColor: const Color(0xFF000000),
+      textStyle: TextStyle(color: Color(0xff00ff00)),
+      borderRadius: BorderRadius.all(Radius.circular(10)),
+      shape: null,
+      clipBehavior: Clip.none,
+      animationDuration: Duration(milliseconds: 200),
+      child: SizedBox(),
+    ).debugFillProperties(builder);
+
+    final List<String> description = builder.properties
+        .where((DiagnosticsNode node) => !node.isFiltered(DiagnosticLevel.info))
+        .map((DiagnosticsNode node) => node.toString())
+        .toList();
+
+    expect(description, <String>[
+      'type: canvas',
+      'color: Color(0xffffffff)',
+      'textStyle.inherit: true',
+      'textStyle.color: Color(0xff00ff00)',
+      'borderRadius: circular(10.0)'
+    ]);
+  });
+  
   testWidgets('LayoutChangedNotification test', (WidgetTester tester) async {
     await tester.pumpWidget(
       Material(
